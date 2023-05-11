@@ -1,1 +1,3 @@
 *.DS_Store*
+NanoFactory/target/*
+NanoFactory/.idea/*
