@@ -20,7 +20,7 @@ public class NanoFactory {
 
     /* -------------------------- INFLUX DB -------------------------- */
     public static final String INFLUX_TOKEN = "2_sE2UaVrCiJTp0AN4ys_D_sayS6SI_nRodYsQRltqag_ZiBoAoHGQq92dHzHyNZpZC1-IZf7_O6SdzJcWPYIA==";
-    public static final String INFLUX_CONNECTION_URL = "http://169.254.179.226:8086";
+    public static final String INFLUX_CONNECTION_URL = "http://169.254.250.201:8086";
     public static final String INFLUX_BUCKET = "BucketProgetto";
     public static final String INFLUX_ORG = "supsi";
 
@@ -57,7 +57,9 @@ public class NanoFactory {
 
     enum TrapdoorStatus{
         BRIGHT_OPEN("BrightOpen"),
-        DARK_OPEN("DarkOpen");
+        BRIGHT_CLOSED("BrightClosed"),
+        DARK_OPEN("DarkOpen"),
+        DARK_CLOSED("DarkClosed");
 
         public final String description;
         private TrapdoorStatus(String description){
@@ -87,6 +89,7 @@ public class NanoFactory {
 
             // Write on influx DB
             client.getWriteApiBlocking().writePoint(INFLUX_BUCKET, INFLUX_ORG, point);
+            System.out.println("Added new point on DB: " + point.toLineProtocol());
         }
     }
 
@@ -132,6 +135,10 @@ public class NanoFactory {
         SensorMonitor<Boolean> buttonDecrementSensorMonitor = new SensorMonitor<>(buttonDecrement, 100);
         SensorMonitor<Boolean> buttonSubmitSensorMonitor = new SensorMonitor<>(buttonSubmit, 100);
 
+        buttonIncrementSensorMonitor.start();
+        buttonDecrementSensorMonitor.start();
+        buttonSubmitSensorMonitor.start();
+
         buttonIncrement.setButtonListener(new GroveButtonListener() {
             @Override
             public void onRelease() {}
@@ -139,6 +146,7 @@ public class NanoFactory {
             public void onPress() {}
             @Override
             public void onClick() {
+                System.out.println("Increment button clicked");
                 buttonClickCounter++;
                 updateLCDScreen(lcdScreen);
             }
@@ -152,6 +160,7 @@ public class NanoFactory {
 
             @Override
             public void onClick() {
+                System.out.println("Decrement button clicked");
                 if(buttonClickCounter > 0){
                     buttonClickCounter--;
                     updateLCDScreen(lcdScreen);
@@ -167,6 +176,7 @@ public class NanoFactory {
 
             @Override
             public void onClick() {
+                System.out.println("Submit button clicked");
                 saveMeasurementOnInflux(
                         HUMAN_INTERVENTION,
                         HUMAN_INTERVENTION,
@@ -180,10 +190,6 @@ public class NanoFactory {
                 giveGreenFedback(lcdScreen);
             }
         });
-
-        buttonIncrementSensorMonitor.start();
-        buttonDecrementSensorMonitor.start();
-        buttonSubmitSensorMonitor.start();
 
         updateLCDScreen(lcdScreen);
 
@@ -234,6 +240,12 @@ public class NanoFactory {
                             trapdoorRotatorySensor.get().getDegrees()
                     );
 
+                    saveMeasurementOnInflux(
+                            TRAPDOOR_NAME,
+                            TrapdoorStatus.DARK_CLOSED.description,
+                            trapdoorRotatorySensor.get().getDegrees()
+                    );
+
                     lastTrapdoorStatus = TrapdoorStatus.BRIGHT_OPEN;
                 }
             }else if(isInPosition(trapdoorRotatorySensor.get().getDegrees(), TRAPDOOR_DARK_OPEN, RS_THRESHOLD)){
@@ -242,6 +254,12 @@ public class NanoFactory {
                     saveMeasurementOnInflux(
                             TRAPDOOR_NAME,
                             TrapdoorStatus.DARK_OPEN.description,
+                            trapdoorRotatorySensor.get().getDegrees()
+                    );
+
+                    saveMeasurementOnInflux(
+                            TRAPDOOR_NAME,
+                            TrapdoorStatus.BRIGHT_CLOSED.description,
                             trapdoorRotatorySensor.get().getDegrees()
                     );
 
