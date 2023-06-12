@@ -28,12 +28,12 @@ public class NanoFactory {
     public static final String SORTER_NAME = "Sorter";
     public static final String TRAPDOOR_NAME = "Trapdoor";
     public static final String HUMAN_INTERVENTION = "HumanIntervention";
-    public static final int RS_THRESHOLD = 10;
-    public static final int TRAPDOOR_BRIGHT_OPEN = 47;    // Based on blue opening, degrees
-    public static final int TRAPDOOR_DARK_OPEN = 157;     // Based on blue opening, degrees
-    public static final int SORTER_IDLE = 197;
-    public static final int SORTER_DARK_SIDE = 72;
-    public static final int SORTER_BRIGHT_SIDE = 300;
+    public static final int THRESHOLD = 10;             // Treshold used for the various sensors
+    public static final int TRAPDOOR_BRIGHT_OPEN = 47;  // Bright trapdoor open position in degrees.
+    public static final int TRAPDOOR_DARK_OPEN = 157;   // Dark trapdoor open position in degrees.
+    public static final int SORTER_IDLE = 197;          // Sorter idle position in degrees
+    public static final int SORTER_DARK_SIDE = 72;      // Sorter dark side position in degrees
+    public static final int SORTER_BRIGHT_SIDE = 300;   // Sorter bright side position in degrees
 
     /* -------------------------- STATIC VARIABLES -------------------------- */
 
@@ -82,9 +82,9 @@ public class NanoFactory {
     private static void saveMeasurementOnInflux(String sourceSensorName, String sourceSensorStatus, double sourceSensorValue){
         if(client != null){
             Point point = Point
-                    .measurement(sourceSensorName)                       // Nome sensore
-                    .addTag("SensorStatus", sourceSensorStatus)          // Stato sensore
-                    .addField("SensorValue", sourceSensorValue)     // Valore sensore
+                    .measurement(sourceSensorName)                       // Sensor name
+                    .addTag("SensorStatus", sourceSensorStatus)          // Sensor status
+                    .addField("SensorValue", sourceSensorValue)     // Sensor value
                     .time(Instant.now(), WritePrecision.NS);
 
             // Write on influx DB
@@ -125,7 +125,7 @@ public class NanoFactory {
         GroveRgbLcd lcdScreen = grovePi.getLCD();
 
         GroveRotarySensor trapdoorRotatorySensor = new GroveRotarySensor(grovePi, 1);   // Analogic
-        GroveRotarySensor sorterRotatorySensor = new GroveRotarySensor(grovePi, 0);     // Analogic
+        GroveRotarySensor sorterRotarySensor = new GroveRotarySensor(grovePi, 0);     // Analogic
 
         GroveButton buttonIncrement = new GroveButton(grovePi, 7);
         GroveButton buttonDecrement = new GroveButton(grovePi, 8);
@@ -195,35 +195,35 @@ public class NanoFactory {
 
         while(true){
             // Sorter
-            if(isInPosition(sorterRotatorySensor.get().getDegrees(), SORTER_IDLE, RS_THRESHOLD)){
+            if(isInPosition(sorterRotarySensor.get().getDegrees(), SORTER_IDLE, THRESHOLD)){
                 // IDLE
                 if(registerSorterEvent != SorterStatus.IDLE) {
                     saveMeasurementOnInflux(
                             SORTER_NAME,
                             SorterStatus.IDLE.description,
-                            sorterRotatorySensor.get().getDegrees()
+                            sorterRotarySensor.get().getDegrees()
                     );
 
                     registerSorterEvent = SorterStatus.IDLE;
                 }
-            }else if(isInPosition(sorterRotatorySensor.get().getDegrees(), SORTER_BRIGHT_SIDE, RS_THRESHOLD)){
+            }else if(isInPosition(sorterRotarySensor.get().getDegrees(), SORTER_BRIGHT_SIDE, THRESHOLD)){
                 // BRIGHT SIDE
                 if(registerSorterEvent != SorterStatus.BRIGHT_SIDE){
                     saveMeasurementOnInflux(
                             SORTER_NAME,
                             SorterStatus.BRIGHT_SIDE.description,
-                            sorterRotatorySensor.get().getDegrees()
+                            sorterRotarySensor.get().getDegrees()
                     );
 
                     registerSorterEvent = SorterStatus.BRIGHT_SIDE;
                 }
-            }else if(isInPosition(sorterRotatorySensor.get().getDegrees(), SORTER_DARK_SIDE, RS_THRESHOLD)){
+            }else if(isInPosition(sorterRotarySensor.get().getDegrees(), SORTER_DARK_SIDE, THRESHOLD)){
                 // DARK SIDE
                 if(registerSorterEvent != SorterStatus.DARK_SIDE){
                     saveMeasurementOnInflux(
                             SORTER_NAME,
                             SorterStatus.DARK_SIDE.description,
-                            sorterRotatorySensor.get().getDegrees()
+                            sorterRotarySensor.get().getDegrees()
                     );
 
                     registerSorterEvent = SorterStatus.DARK_SIDE;
@@ -231,7 +231,7 @@ public class NanoFactory {
             }
 
             // Trapdoor
-            if(isInPosition(trapdoorRotatorySensor.get().getDegrees(), TRAPDOOR_BRIGHT_OPEN, RS_THRESHOLD)){
+            if(isInPosition(trapdoorRotatorySensor.get().getDegrees(), TRAPDOOR_BRIGHT_OPEN, THRESHOLD)){
                 // Bright open, Dark closed
                 if(lastTrapdoorStatus != TrapdoorStatus.BRIGHT_OPEN){
                     saveMeasurementOnInflux(
@@ -248,7 +248,7 @@ public class NanoFactory {
 
                     lastTrapdoorStatus = TrapdoorStatus.BRIGHT_OPEN;
                 }
-            }else if(isInPosition(trapdoorRotatorySensor.get().getDegrees(), TRAPDOOR_DARK_OPEN, RS_THRESHOLD)){
+            }else if(isInPosition(trapdoorRotatorySensor.get().getDegrees(), TRAPDOOR_DARK_OPEN, THRESHOLD)){
                 // Bright open, Dark closed
                 if(lastTrapdoorStatus != TrapdoorStatus.DARK_OPEN){
                     saveMeasurementOnInflux(
