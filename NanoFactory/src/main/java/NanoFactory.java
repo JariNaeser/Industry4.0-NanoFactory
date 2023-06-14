@@ -20,7 +20,7 @@ public class NanoFactory {
 
     /* -------------------------- INFLUX DB -------------------------- */
     public static final String INFLUX_TOKEN = "2_sE2UaVrCiJTp0AN4ys_D_sayS6SI_nRodYsQRltqag_ZiBoAoHGQq92dHzHyNZpZC1-IZf7_O6SdzJcWPYIA==";
-    public static final String INFLUX_CONNECTION_URL = "http://169.254.250.201:8086";
+    public static final String INFLUX_CONNECTION_URL = "http://169.254.62.1:8086";
     public static final String INFLUX_BUCKET = "BucketProgetto";
     public static final String INFLUX_ORG = "supsi";
 
@@ -266,7 +266,7 @@ public class NanoFactory {
                     lastTrapdoorStatus = TrapdoorStatus.DARK_OPEN;
                 }
             }
-            Thread.sleep(250);
+            Thread.sleep(10);
         }
     }
 }
